@@ -18,5 +18,9 @@
     "functions": "^1.0.9",
     "pdf-poppler": "^0.2.1",
     "puppeteer": "^24.0.0"
-  }
+  },
+  
+  "netlify": {
+  "functions": "netlify/functions"
+}
 }

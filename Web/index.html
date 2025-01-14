@@ -61,21 +61,27 @@
   <script>
     function showPreview(imageSrc) {
       const previewDiv = document.getElementById('preview');
-      previewDiv.innerHTML = `<h2 style="color:white;">PDF Preview</h2><img src="${imageSrc}" alt="PDF Preview"><br><br><br><br><a style="font-size:1.6rem; color:white; padding:0.4rem; border: 1px solid green; border-radius:0.5rem;" href="example.pdf" download="output.pdf">Download PDF</a>`;
+      previewDiv.innerHTML = `
+        <h2 style="color:white;">PDF Preview</h2>
+        <img src="${imageSrc}" alt="PDF Preview">
+        <br><br><br><br>
+        <a style="font-size:1.6rem; color:white; padding:0.4rem; border: 1px solid green; border-radius:0.5rem;" href="example.pdf" download="output.pdf">
+          Download PDF
+        </a>`;
     }
-
+  
     function addCss(css) {
       document.getElementById('css').value += css + '\n';
     }
-
+  
     const urlParams = new URLSearchParams(window.location.search);
     const previewImage = urlParams.get('previewImage');
     const usedCssClasses = urlParams.get('usedCssClasses');
-
+  
     if (previewImage) {
       showPreview(previewImage);
     }
-
+  
     if (usedCssClasses) {
       const cssClassesList = document.getElementById('cssClassesList');
       JSON.parse(usedCssClasses).forEach(className => {
@@ -84,22 +90,22 @@
         cssClassesList.appendChild(listItem);
       });
     }
-
-    // Live Preview
+  
+    // Event Listener für die Vorschau (Live Preview)
     const form = document.getElementById('pdfForm');
     form.addEventListener('input', async () => {
       const url = document.getElementById('url').value;
       const css = document.getElementById('css').value;
       const js = document.getElementById('js').value;
-
+  
       if (url) {
         try {
-          const response = await fetch('https://website-to-pdf-converter.netlify.app/generate-preview', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ url, css, js })
-});
-
+          const response = await fetch('/.netlify/functions/generate-preview', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url, css, js })
+          });
+  
           const data = await response.json();
           if (data.previewImage) {
             showPreview(data.previewImage);
@@ -109,7 +115,33 @@
         }
       }
     });
+  
+    // Funktion für die PDF-Generierung
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault(); // Verhindert das automatische Reload der Seite
+      const url = document.getElementById('url').value;
+      const css = document.getElementById('css').value;
+      const js = document.getElementById('js').value;
+  
+      try {
+        const response = await fetch('/.netlify/functions/generate-pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, css, js })
+        });
+  
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = 'output.pdf';
+        link.click();
+        URL.revokeObjectURL(blobUrl);
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+      }
+    });
   </script>
-
+  
 </body>
 </html>
