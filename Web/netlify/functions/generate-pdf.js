@@ -19,9 +19,7 @@ exports.handler = async function(event, context) {
     await page.goto(url, { waitUntil: 'networkidle2' });
 
     // Combine the user-provided CSS with the fixed CSS
-    const combinedCSS = `
-      ${css}
-    `;
+    const combinedCSS = `${css}`;
     await page.addStyleTag({ content: combinedCSS });
 
     // Remove lazy loading
@@ -60,16 +58,21 @@ exports.handler = async function(event, context) {
     await pdfPoppler.convert(pdfPath, opts);
 
     const imagePath = path.join(opts.out_dir, `${opts.out_prefix}-1.png`);
-    
+
+    // Read the image and PDF as buffers
+    const pdfBuffer = fs.readFileSync(pdfPath);
+    const imageBuffer = fs.readFileSync(imagePath);
+
     // Clean up
     await browser.close();
 
     return {
       statusCode: 200,
       body: JSON.stringify({
-        pdfPath: `/pdfs/example.pdf`,  // Link for downloading
-        previewImage: `/images/example-1.png` // Image for preview
-      })
+        pdfBuffer: pdfBuffer.toString('base64'),  // Return the PDF as base64
+        previewImage: imageBuffer.toString('base64') // Return the image as base64
+      }),
+      isBase64Encoded: true // Important to mark the response as base64
     };
   } catch (error) {
     console.error('Error generating PDF:', error);
@@ -79,5 +82,3 @@ exports.handler = async function(event, context) {
     };
   }
 };
-
-  
