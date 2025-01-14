@@ -1,6 +1,6 @@
 {
     "dependencies": {
         "@netlify/functions": "^3.0.0",
-        "puppeteer": "^20.0.0"
+        "puppeteer": "^24.0.0"
     }
 }
