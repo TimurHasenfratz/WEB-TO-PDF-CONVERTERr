@@ -34,7 +34,24 @@
     <label class="block mb-4 font-semibold text-xl" for="css">Add Custom CSS:</label>
     <textarea   class="w-full p-4 mb-6 rounded-xl bg-gray-700 border  border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-lg" id="css" name="css" rows="10" cols="50"> 
    
-     
+        nav {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 1000;
+        }
+        body::after {
+          content: "";
+          display: block;
+          page-break-after: always;
+        }
+        nav + * {
+          page-break-before: always;
+        }
+        body {
+          zoom: 60%;
+        }
       
 
     </textarea>
@@ -58,89 +75,62 @@
     <ul id="cssClassesList"></ul>
   </div>
 
-<script>
-  function showPreview(imageSrc) {
-  const previewDiv = document.getElementById('preview');
-  previewDiv.innerHTML = `
-    <h2 style="color:white;">PDF Preview</h2>
-    <img src="${imageSrc}" alt="PDF Preview">
-    <br><br><br><br>
-    <a style="font-size:1.6rem; color:white; padding:0.4rem; border: 1px solid green; border-radius:0.5rem;" href="example.pdf" download="output.pdf">
-      Download PDF
-    </a>`;
-}
-
-function addCss(css) {
-  document.getElementById('css').value += css + '\n';
-}
-
-const urlParams = new URLSearchParams(window.location.search);
-const previewImage = urlParams.get('previewImage');
-const usedCssClasses = urlParams.get('usedCssClasses');
-
-if (previewImage) {
-  showPreview(previewImage);
-}
-
-if (usedCssClasses) {
-  const cssClassesList = document.getElementById('cssClassesList');
-  JSON.parse(usedCssClasses).forEach(className => {
-    const listItem = document.createElement('li');
-    listItem.textContent = className;
-    cssClassesList.appendChild(listItem);
-  });
-}
-
-// Event Listener for Live Preview
-const form = document.getElementById('pdfForm');
-form.addEventListener('input', async () => {
-  const url = document.getElementById('url').value;
-  const css = document.getElementById('css').value;
-  const js = document.getElementById('js').value;
-
-  if (url) {
-    try {
-      const response = await fetch('/.netlify/functions/generate-preview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, css, js })
-      });
-
-      const data = await response.json();
-      if (data.previewImage) {
-        showPreview(data.previewImage);
-      }
-    } catch (error) {
-      console.error('Error generating live preview:', error);
+  <script>
+    function showPreview(imageSrc) {
+      const previewDiv = document.getElementById('preview');
+      previewDiv.innerHTML = `<h2 style="color:white;">PDF Preview</h2><img src="${imageSrc}" alt="PDF Preview"><br><br><br><br><a style="font-size:1.6rem; color:white; padding:0.4rem; border: 1px solid green; border-radius:0.5rem;" href="example.pdf" download="output.pdf">Download PDF</a>`;
     }
-  }
+
+    function addCss(css) {
+      document.getElementById('css').value += css + '\n';
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const previewImage = urlParams.get('previewImage');
+    const usedCssClasses = urlParams.get('usedCssClasses');
+
+    if (previewImage) {
+      showPreview(previewImage);
+    }
+
+    if (usedCssClasses) {
+      const cssClassesList = document.getElementById('cssClassesList');
+      JSON.parse(usedCssClasses).forEach(className => {
+        const listItem = document.createElement('li');
+        listItem.textContent = className;
+        cssClassesList.appendChild(listItem);
+      });
+    }
+
+    // Live Preview
+    const form = document.getElementById('pdfForm');
+    form.addEventListener('input', async () => {
+      const url = document.getElementById('url').value;
+      const css = document.getElementById('css').value;
+      const js = document.getElementById('js').value;
+
+      if (url) {
+        try {
+        const response = await fetch('http://localhost:3000/generate-preview', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ url, css, js })
 });
 
-// Event Listener for PDF Generation
-form.addEventListener('submit', async (e) => {
-  e.preventDefault(); // Prevents automatic page reload
-  const url = document.getElementById('url').value;
-  const css = document.getElementById('css').value;
-  const js = document.getElementById('js').value;
-
-  try {
-    const response = await fetch('/.netlify/functions/generate-pdf', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url, css, js })
+          const data = await response.json();
+          if (data.previewImage) {
+            showPreview(data.previewImage);
+          }
+        } catch (error) {
+          console.error('Error generating live preview:', error);
+        }
+      }
     });
-    
-    const blob = await response.blob();
-    const blobUrl = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = 'output.pdf';
-    link.click();
-    URL.revokeObjectURL(blobUrl);
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-  }
-});
+
+
+  </script>
+<script>
+
 </script>
 </body>
 </html>
